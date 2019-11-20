@@ -50,7 +50,6 @@ class Synth:
         print('From {} noise file generate {} noisy file'.format(noise_length, clean_length))
         num_list = range(clean_length)
         # _gen_noisy(clean_data_list, noise_data_list, noisy_train_dir, snr, TIMIT_dir_name, num)
-        # _gen_noisy(clean_data_list, noise_data_list, noisy_dir, snr_list[0], self.sr_clean, self.sr_noise,0)
         for snr in snr_list:
             pool = Pool(cpu_cores)
             func = partial(_gen_noisy, clean_data_list,
