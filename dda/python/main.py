@@ -7,44 +7,23 @@ from model import REG
 from preprocessing import Synth, GenMatrix
 from os.path import join
 from utils import search_wav
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 
 np.random.seed(1234567)
 
-FLAGS = tf.flags.FLAGS
-tf.flags.DEFINE_string('clean_dir', '../data/raw/clean',
-                       'set clean data folder')
-tf.flags.DEFINE_string('noise_dir', '../data/raw/noise',
-                       'set noise data folder')
-tf.flags.DEFINE_string('noisy_dir', '../data/noisy',
-                       'set noisy(clean mixed with noise) data folder')
-tf.flags.DEFINE_string('enhanced_dir', '../data/enhanced',
-                       'set enhanced data folder')
-tf.flags.DEFINE_string('training_files_dir', '../data/training_files',
-                       'set training files folder')
-tf.flags.DEFINE_string('tb_dir', '../model/tb_logs', 'save tensorboard logs')
-tf.flags.DEFINE_string('saver_dir', '../model/saver', 'set folder for saver')
-tf.flags.DEFINE_bool('TRAIN', True, 'train this model or not')
-tf.flags.DEFINE_bool('TEST', True, 'test this model or not')
-tf.flags.DEFINE_integer('n_cores', 20, 'set cpu cores')
-tf.flags.DEFINE_integer('epochs', 100, 'epochs for training iterations')
-tf.flags.DEFINE_integer('batch_size', 32, 'number of batch size')
-tf.flags.DEFINE_float('learning_rate', 1e-3, 'learning rate')
-
-
 def main():
-    clean_dir = FLAGS.clean_dir
-    noise_dir = FLAGS.noise_dir
-    noisy_dir = FLAGS.noisy_dir
-    enhanced_dir = FLAGS.enhanced_dir
-    tb_dir = FLAGS.tb_dir
-    saver_dir = FLAGS.saver_dir
-    TRAIN = FLAGS.TRAIN
-    TEST = FLAGS.TEST
-    ncores = FLAGS.n_cores
-    epochs = FLAGS.epochs
-    batch_size = FLAGS.batch_size
-    lr = FLAGS.learning_rate
+    clean_dir = '../data/raw/clean'
+    noise_dir = '../data/raw/noise'
+    noisy_dir =  '../data/noisy'
+    enhanced_dir =  '../data/enhanced'
+    tb_dir = '../model/tb_logs'
+    saver_dir = '../model/saver'
+    TRAIN = True
+    TEST = True
+    ncores = 20
+    epochs = 100
+    batch_size = 32
+    lr = 1e-3
 
     train_task = 'same_noise'  # set task name for noting your dataset
 
@@ -82,7 +61,7 @@ def main():
     # ===========================================================
     print('--- Generate Training Matrix ---')
     train_task = 'same_noise'  # set task name for noting your dataset
-    training_files_dir = FLAGS.training_files_dir
+    training_files_dir = '../data/training_files'
     train_noisy_dir = join(noisy_dir, 'train')
     DEL_TRAIN_WAV = True
     gen_mat = GenMatrix(training_files_dir, train_task, train_noisy_dir)
@@ -100,7 +79,7 @@ def main():
     note = 'DDAE'
     date = '0720'
     split_num = 50
-    training_files_dir = FLAGS.training_files_dir
+    training_files_dir = '../data/training_files'
     model = REG(tb_dir, saver_dir, train_task, date, gpu_num='3', note=note)
     model.build(init_learning_rate=1e-3, reuse=False)
 

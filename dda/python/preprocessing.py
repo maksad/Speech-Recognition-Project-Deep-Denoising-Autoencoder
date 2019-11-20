@@ -50,6 +50,7 @@ class Synth:
         print('From {} noise file generate {} noisy file'.format(noise_length, clean_length))
         num_list = range(clean_length)
         # _gen_noisy(clean_data_list, noise_data_list, noisy_train_dir, snr, TIMIT_dir_name, num)
+        # _gen_noisy(clean_data_list, noise_data_list, noisy_dir, snr_list[0], self.sr_clean, self.sr_noise,0)
         for snr in snr_list:
             pool = Pool(cpu_cores)
             func = partial(_gen_noisy, clean_data_list,
@@ -58,7 +59,7 @@ class Synth:
             pool.close()
             pool.join()
 
-        
+
         if ADD_CLEAN:
             ## This function will set 'n0' as clean data
             num_list = range(len(clean_data_list))
@@ -89,7 +90,7 @@ class GenMatrix:
         training_data_list = search_wav(self.noisy_dir)
         print('Total training files: ', len(training_data_list))
 
-        
+
         for file in training_data_list:
             try:
                 snr, noise_name, clean_name1, clean_neme2 = file.split('/')[-1].split('_')
@@ -104,7 +105,7 @@ class GenMatrix:
 
             tmp1.append(clean_file)
             tmp2.append(noisy_file)
-        
+
         t1, t2 = shuffle(np.array(tmp1), np.array(tmp2))
 
         clean_split_list = split_list(t1, wanted_parts=split_num)

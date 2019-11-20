@@ -1,4 +1,5 @@
-import tensorflow as tf
+#import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import h5py
 import numpy as np
 import scipy
@@ -8,7 +9,7 @@ from os.path import join
 from tqdm import tqdm
 tqdm.monitor_interval = 0
 from utils import np_REG_batch, search_wav, wav2spec, spec2wav, copy_file
-
+#tf.disable_v2_behavior()
 
 class REG:
 
@@ -35,6 +36,7 @@ class REG:
     def build(self, init_learning_rate, reuse):
         self.init_learning_rate = init_learning_rate
         self.name = 'REG_Net'
+        tf.disable_eager_execution()
         # regularizer = tf.contrib.layers.l2_regularizer(scale=0.1)
         with tf.variable_scope(self.name) as vs:
             if reuse:
@@ -48,19 +50,19 @@ class REG:
             with tf.name_scope('weights'):
                 w = {'w_o': tf.get_variable("WO", shape=[512, 257],
                                            # regularizer=regularizer,
-                                           initializer=tf.contrib.layers.xavier_initializer()),
+                                           initializer=tf.glorot_normal_initializer(seed=None, dtype=tf.float32)),
                     'w_1': tf.get_variable("W1", shape=[1285, 512],
                                            # regularizer=regularizer,
-                                           initializer=tf.contrib.layers.xavier_initializer()),
+                                           initializer=tf.glorot_normal_initializer(seed=None, dtype=tf.float32)),
                     'w_2': tf.get_variable("W2", shape=[512, 512],
                                            # regularizer=regularizer,
-                                           initializer=tf.contrib.layers.xavier_initializer()),
+                                           initializer=tf.glorot_normal_initializer(seed=None, dtype=tf.float32)),
                     'w_3': tf.get_variable("W3", shape=[512, 512],
                                            # regularizer=regularizer,
-                                           initializer=tf.contrib.layers.xavier_initializer()),
+                                           initializer=tf.glorot_normal_initializer(seed=None, dtype=tf.float32)),
                     'w_4': tf.get_variable("W4", shape=[512, 512],
                                            # regularizer=regularizer,
-                                           initializer=tf.contrib.layers.xavier_initializer())}
+                                           initializer=tf.glorot_normal_initializer(seed=None, dtype=tf.float32))}
             with tf.name_scope('bias'):
                 b = {'b_o': tf.get_variable("bO", shape=[1, 257],
                                            initializer=tf.constant_initializer(value=0, dtype=tf.float32)),
@@ -86,7 +88,7 @@ class REG:
                     self.y_clean, self.reg_layer)
 
                 tf.summary.scalar('Loss reg', self.loss_reg)
-            
+
             with tf.name_scope("exp_learning_rate"):
                 self.global_step = tf.Variable(0, trainable=False)
                 self.exp_learning_rate = tf.train.exponential_decay(self.init_learning_rate,
@@ -117,7 +119,7 @@ class REG:
             min_delta = 0.01
             step = 0
             epochs = range(epochs)
-            
+
             tf.global_variables_initializer().run()
             writer = tf.summary.FileWriter(
                 self.tb_dir, sess.graph,  max_queue=10)

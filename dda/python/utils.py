@@ -121,9 +121,12 @@ def spec2wav(wavfile, sr, output_filename, spec_test, hop_length=None):
 
     y_out = librosa.util.fix_length(result, len(y), mode='edge')
     y_out = y_out/np.max(np.abs(y_out))
-    maxv = np.iinfo(np.int16).max
+    if(np.max(abs(y_out)>1)):
+        y_out = y_out/max(abs(y_out));
+#    librosa.output.write_wav(
+#        output_filename, (y_out * maxv).astype(np.int16), sr)
     librosa.output.write_wav(
-        output_filename, (y_out * maxv).astype(np.int16), sr)
+        output_filename, y_out, sr)
 
 
 def copy_file(input_file, output_file):
@@ -141,7 +144,7 @@ def _gen_noisy(clean_file_list, noise_file_list, save_dir, snr, sr_clean, sr_noi
 
     clean_pwr = sum(abs(y_clean)**2) / len(y_clean)
     y_noise, sr_noise = librosa.load(noise_file, sr_noise, mono=True)
-    
+
     tmp_list = []
     if len(y_noise) < len(y_clean):
         tmp = (len(y_clean) // len(y_noise)) + 1
@@ -155,8 +158,12 @@ def _gen_noisy(clean_file_list, noise_file_list, save_dir, snr, sr_clean, sr_noi
     y_noisy = y_clean + noise
     maxv = np.iinfo(np.int16).max
     save_name = '{}_{}_{}.wav'.format(snr, noise_name, clean_name)
+    if(np.max(abs(y_noisy)>1)):
+        y_noisy = y_noisy/max(abs(y_noisy));
+#    librosa.output.write_wav(
+#        '/'.join([save_dir, save_name]), (y_noisy * maxv).astype(np.int16), sr_clean)
     librosa.output.write_wav(
-        '/'.join([save_dir, save_name]), (y_noisy * maxv).astype(np.int16), sr_clean)
+        '/'.join([save_dir, save_name]), y_noisy, sr_clean)
 
 def _gen_clean(clean_file_list, save_dir, snr, num=None):
     sr_clean = 16000
@@ -166,10 +173,13 @@ def _gen_clean(clean_file_list, save_dir, snr, num=None):
 
 
     clean_name = clean_file.split('/')[-1].split('.')[0]
-    maxv = np.iinfo(np.int16).max
+    if(np.max(abs(y_clean)>1)):
+        y_clean = y_clean/max(abs(y_clean));
     save_name = '{}_{}_{}.wav'.format(snr, noise_name, clean_name)
+#    librosa.output.write_wav(
+#        '/'.join([save_dir, save_name]), (y_clean * maxv).astype(np.int16), sr_clean)
     librosa.output.write_wav(
-        '/'.join([save_dir, save_name]), (y_clean * maxv).astype(np.int16), sr_clean)
+        '/'.join([save_dir, save_name]), y_clean, sr_clean)
 
 def _create_split_h5(clean_split_list,
                      noisy_split_list,
