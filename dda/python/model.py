@@ -194,8 +194,8 @@ class REG:
                 hop_length = 256
                 file_name = file.split('/')[-1]
                 try:
-                    snr, noise_name, clean_name1, clean_neme2 = file.split('/')[-1].split('_')
-                    clean_file = join(testing_data_dir, '_'.join(['0dB', 'n0', clean_name1, clean_neme2]))
+                    snr, noise_name, clean_name1 = file.split('/')[-1].split('_')
+                    clean_file = join(testing_data_dir, '_'.join(['0dB', 'n0', clean_name1]))
                     noisy_file = file
                 except:
                     snr, noise_name, clean_name = file.split('/')[-1].split('_')
