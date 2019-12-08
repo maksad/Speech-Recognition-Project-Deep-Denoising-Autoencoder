@@ -1,0 +1,15 @@
+clean contains data from fin_words_eval
+noisy contains data from noisy with the same clean files, but with babble noise added at 0dB, 8dB, and 25dB (25dB doesn't really exist, I just copied clean files here with that label for our pseudo nearly-clean data)
+
+Both of these were given to us by Tamas, with some modifications. 
+
+The data in both files are split into train and test. They are split such that 20% of the files are in the test directories. 
+ 
+
+
+
+
+
+
+
+

@@ -7,6 +7,7 @@ import h5py
 from glob import iglob
 from shutil import copy2
 from os.path import join
+import os
 
 
 epsilon = np.finfo(float).eps
@@ -43,11 +44,10 @@ def split_list(alist, wanted_parts=20):
     return [alist[i * length // wanted_parts: (i + 1) * length // wanted_parts]
             for i in range(wanted_parts)]
 
-def wav2spec(wavfile, sr, forward_backward=None, SEQUENCE=None, norm=True, hop_length=256):
+def wav2spec(wavfile, sr, forward_backward=None, SEQUENCE=None, hop_length=256, norm=False):
     # Note:This function return three different kind of spec for training and
     # testing
     y, sr = librosa.load(wavfile, sr, mono=True)
-    NUM_FRAME = 2  # number of backward frame and forward frame
     NUM_FFT = 512
 
     D = librosa.stft(y,
@@ -55,49 +55,39 @@ def wav2spec(wavfile, sr, forward_backward=None, SEQUENCE=None, norm=True, hop_l
                      hop_length=hop_length,
                      win_length=512,
                      window=scipy.signal.hann)
+  #  librosa.core.stft(y, n_fft=2048, hop_length=None, win_length=None, window='hann', center=True, dtype=<class 'numpy.complex64'>, pad_mode='reflect')
     D = D + epsilon
     Sxx = np.log10(abs(D)**2)
-    if norm:
-        Sxx_mean = np.mean(Sxx, axis=1).reshape(257, 1)
-        Sxx_var = np.var(Sxx, axis=1).reshape(257, 1)
-        Sxx_r = (Sxx - Sxx_mean) / Sxx_var
-    else:
-        Sxx_r = np.array(Sxx)
-    idx = 0
-    # set data into 3 dim and muti-frame(frame, sample, num_frame)
-    if forward_backward:
-        Sxx_r = Sxx_r.T
-        return_data = np.empty(
-            (100000, np.int32(NUM_FRAME * 2) + 1, np.int32(NUM_FFT / 2) + 1))
-        frames, dim = Sxx_r.shape
+    Sxx_r = np.array(Sxx);
+    Sxx_r = np.array(Sxx_r).T
+    return Sxx_r
 
-        for num, data in enumerate(Sxx_r):
-            idx_start = idx - NUM_FRAME
-            idx_end = idx + NUM_FRAME
-            if idx_start < 0:
-                null = np.zeros((-idx_start, dim))
-                tmp = np.concatenate((null, Sxx_r[0:idx_end + 1]), axis=0)
-            elif idx_end > frames - 1:
-                null = np.zeros((idx_end - frames + 1, dim))
-                tmp = np.concatenate((Sxx_r[idx_start:], null), axis=0)
-            else:
-                tmp = Sxx_r[idx_start:idx_end + 1]
+def wav2melspec(wavfile, sr, forward_backward=False, SEQUENCE=None, norm=False, hop_length=256):
+    # Note:This function return three different kind of spec for training and
+    # testing
+    y, sr = librosa.load(wavfile, sr, mono=True)
+    NUM_FFT = 512
 
-            return_data[idx] = tmp
-            idx += 1
-        shape = return_data.shape
-        if SEQUENCE:
-            return return_data[:idx]
-        else:
-            return return_data.reshape(shape[0], shape[1] * shape[2])[:idx]
+    D = librosa.feature.melspectrogram(y,
+                     n_fft=NUM_FFT,
+                     hop_length=hop_length,
+                     win_length=512,
+                     window=scipy.signal.hann)
 
-    else:
-        Sxx_r = np.array(Sxx_r).T
-        shape = Sxx_r.shape
-        if SEQUENCE:
-            return Sxx_r.reshape(shape[0], 1, shape[1])
-        else:
-            return Sxx_r
+    D = D + epsilon
+    Sxx = np.log10(abs(D)**2)
+    Sxx_r = np.array(Sxx);
+    Sxx_r = np.array(Sxx_r).T
+    return Sxx_r
+
+def wav2mfcc(wavfile, sr, forward_backward=False, SEQUENCE=None, norm=False, hop_length=256):
+    # Note:This function return three different kind of spec for training and
+    # testing
+    y, sr = librosa.load(wavfile, sr, mono=True)
+    mfcc = librosa.feature.mfcc(y,
+                 hop_length=hop_length,
+                 sr = sr, n_mels = 13, dct_type=3)
+    return mfcc.T
 
 def spec2wav(wavfile, sr, output_filename, spec_test, hop_length=None):
 
@@ -119,6 +109,14 @@ def spec2wav(wavfile, sr, output_filename, spec_test, hop_length=None):
                            win_length=512,
                            window=scipy.signal.hann)
 
+    melspec = librosa.feature.melspectrogram(S =  Sxx_r, n_fft=512, sr=sr);
+    mfcc = librosa.feature.mfcc(S=melspec, sr=sr, n_mfcc=13, n_fft=512, win_length=512);
+    delta = librosa.feature.delta(mfcc);
+    mfcc_new = np.concatenate([mfcc, delta]);
+    if(os.path.exists(output_filename[0:-4] +'.mfc')):
+        os.remove(output_filename[0:-4] +'.mfc')
+    np.savetxt(output_filename[0:-4] +'.mfc', mfcc_new);
+
     y_out = librosa.util.fix_length(result, len(y), mode='edge')
     y_out = y_out/np.max(np.abs(y_out))
     if(np.max(abs(y_out)>1)):
@@ -128,9 +126,64 @@ def spec2wav(wavfile, sr, output_filename, spec_test, hop_length=None):
     librosa.output.write_wav(
         output_filename, y_out, sr)
 
+def melspec2wav(wavfile, sr, output_filename, spec_test, hop_length=None):
 
-def copy_file(input_file, output_file):
+    y, sr = librosa.load(wavfile, sr, mono=True)
+    D = librosa.feature.melspectrogram(y,
+                     n_fft=512,
+                     hop_length=hop_length,
+                     win_length=512,
+                     window=scipy.signal.hann)
+    D = D + epsilon
+    phase = np.exp(1j * np.angle(D))
+    Sxx_r_tmp = np.array(spec_test)
+    Sxx_r_tmp = np.sqrt(10**Sxx_r_tmp)
+    #Sxx_r = Sxx_r_tmp.T
+    reverse = np.multiply(Sxx_r_tmp, phase)
+
+    result = librosa.feature.inverse.mel_to_audio(reverse,
+                           hop_length=hop_length,
+                           win_length=512,
+                           window=scipy.signal.hann)
+    mfcc = librosa.feature.mfcc(S=Sxx_r_tmp, sr=sr, n_mfcc=13, n_fft=512, win_length = 512);
+    delta = librosa.feature.delta(mfcc);
+    mfcc_new = np.concatenate([mfcc, delta]);
+    if(os.path.exists(output_filename[0:-4] +'.mfc')):
+        os.remove(output_filename[0:-4] +'.mfc')
+    np.savetxt(output_filename[0:-4] +'.mfc', mfcc_new);
+    y_out = librosa.util.fix_length(result, len(y), mode='edge')
+    y_out = y_out/np.max(np.abs(y_out))
+    if(np.max(abs(y_out)>1)):
+        y_out = y_out/max(abs(y_out));
+#    librosa.output.write_wav(
+#        output_filename, (y_out * maxv).astype(np.int16), sr)
+    librosa.output.write_wav(
+        output_filename, y_out, sr)
+
+def mfccupload(wavfile, sr, output_filename, mfcc, hop_length=None): #not doing the actual converting; just uploading
+
+    y, sr = librosa.load(wavfile, sr, mono=True)
+#    delta = librosa.feature.delta(mfcc);
+#    mfcc_new = np.concatenate([mfcc, delta]);
+    if(os.path.exists(output_filename[0:-4] +'.mfc')):
+        os.remove(output_filename[0:-4] +'.mfc')
+    np.savetxt(output_filename[0:-4] +'.mfc', mfcc);
+    librosa.output.write_wav(
+        output_filename, y, sr)
+
+
+def copy_file(input_file, output_file, hop_length):
     copy2(input_file, output_file)
+    y, sr = librosa.load(input_file, sr=16000, mono=True)
+    mfcc = librosa.feature.mfcc(y,
+                 hop_length=hop_length, n_fft = 512, win_length=512,
+                 sr = sr, n_mfcc = 13)
+    delta = librosa.feature.delta(mfcc);
+    mfcc_new = np.concatenate([mfcc, delta]);
+    if(os.path.exists(output_file[0:-4] +'.mfc')):
+        os.remove(output_file[0:-4] +'.mfc')
+    np.savetxt(output_file[0:-4] +'.mfc', mfcc_new);
+
 
 
 def _gen_noisy(clean_file_list, noise_file_list, save_dir, snr, sr_clean, sr_noise, num=None):
@@ -182,22 +235,30 @@ def _gen_clean(clean_file_list, save_dir, snr, num=None):
         '/'.join([save_dir, save_name]), y_clean, sr_clean)
 
 def _create_split_h5(clean_split_list,
-                     noisy_split_list,
+                     noisy_split_list, feat,
                      save_dir,
                      file_name,
-                     input_sequence=True,
+                     input_sequence=False,
                      split_num=None):
-    irm_tmp = []
     noisy_tmp = []
     clean_tmp = []
-    count = 0
     for clean_file, noisy_file in zip(clean_split_list[split_num], noisy_split_list[split_num]):
-        data_name = noisy_file.split('/')[-1]
         # you can set noisy data is sequence or not
-        noisy_spec = wav2spec(
-            noisy_file, sr=16000, forward_backward=True, SEQUENCE=input_sequence, norm=True, hop_length=256)
-        clean_spec = wav2spec(
-            clean_file, sr=16000, forward_backward=False, SEQUENCE=input_sequence, norm=False, hop_length=256)
+        if feat=='spec':
+            noisy_spec = wav2spec(
+                noisy_file, sr=16000, forward_backward=False, SEQUENCE=input_sequence, norm=False, hop_length=256)
+            clean_spec = wav2spec(
+                clean_file, sr=16000, forward_backward=False, SEQUENCE=input_sequence, norm=False, hop_length=256)
+        elif feat=='mel':
+            noisy_spec = wav2melspec(
+                noisy_file, sr=16000, forward_backward=False, SEQUENCE=input_sequence, norm=False, hop_length=256)
+            clean_spec = wav2melspec(
+                clean_file, sr=16000, forward_backward=False, SEQUENCE=input_sequence, norm=False, hop_length=256)
+        elif feat=='mfcc':
+            noisy_spec = wav2mfcc(
+                noisy_file, sr=16000, forward_backward=False, SEQUENCE=input_sequence, norm=False, hop_length=256)
+            clean_spec = wav2mfcc(
+                clean_file, sr=16000, forward_backward=False, SEQUENCE=input_sequence, norm=False, hop_length=256)
 
         noisy_tmp.append(noisy_spec)
         clean_tmp.append(clean_spec)

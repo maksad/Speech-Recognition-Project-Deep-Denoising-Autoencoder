@@ -8,7 +8,7 @@ import os
 from os.path import join
 from tqdm import tqdm
 tqdm.monitor_interval = 0
-from utils import np_REG_batch, search_wav, wav2spec, spec2wav, copy_file
+from utils import np_REG_batch, search_wav, wav2spec, wav2melspec, wav2mfcc, melspec2wav, spec2wav, mfccupload, copy_file
 #tf.disable_v2_behavior()
 
 class REG:
@@ -33,25 +33,31 @@ class REG:
         if not os.path.exists(self.tb_dir):
             os.makedirs(self.tb_dir)
 
-    def build(self, init_learning_rate, reuse):
+    def build(self, init_learning_rate, reuse, feat):
         self.init_learning_rate = init_learning_rate
         self.name = 'REG_Net'
         tf.disable_eager_execution()
         # regularizer = tf.contrib.layers.l2_regularizer(scale=0.1)
+        if feat=='spec':
+            input_no = 257;
+        elif feat=='mel':
+            input_no=128;
+        elif feat=='mfcc':
+            input_no=13
         with tf.variable_scope(self.name) as vs:
             if reuse:
                 vs.reuse_variables()
             with tf.variable_scope('Intputs'):
                 self.x_noisy = tf.placeholder(
-                    tf.float32, shape=[None, 1285], name='x')
+                    tf.float32, shape=[None, input_no], name='x')
             with tf.variable_scope('Outputs'):
                 self.y_clean = tf.placeholder(
-                    tf.float32, shape=[None, 257], name='y_clean')
+                    tf.float32, shape=[None, input_no], name='y_clean')
             with tf.name_scope('weights'):
-                w = {'w_o': tf.get_variable("WO", shape=[512, 257],
+                w = {'w_o': tf.get_variable("WO", shape=[512, input_no],
                                            # regularizer=regularizer,
                                            initializer=tf.glorot_normal_initializer(seed=None, dtype=tf.float32)),
-                    'w_1': tf.get_variable("W1", shape=[1285, 512],
+                    'w_1': tf.get_variable("W1", shape=[input_no, 512],
                                            # regularizer=regularizer,
                                            initializer=tf.glorot_normal_initializer(seed=None, dtype=tf.float32)),
                     'w_2': tf.get_variable("W2", shape=[512, 512],
@@ -64,7 +70,7 @@ class REG:
                                            # regularizer=regularizer,
                                            initializer=tf.glorot_normal_initializer(seed=None, dtype=tf.float32))}
             with tf.name_scope('bias'):
-                b = {'b_o': tf.get_variable("bO", shape=[1, 257],
+                b = {'b_o': tf.get_variable("bO", shape=[1, input_no],
                                            initializer=tf.constant_initializer(value=0, dtype=tf.float32)),
                     'b_1': tf.get_variable("b1", shape=[1, 512],
                                            initializer=tf.constant_initializer(value=0, dtype=tf.float32)),
@@ -168,7 +174,7 @@ class REG:
                     print('Early Stopping ! ! !')
                     break
 
-    def test(self, testing_data_dir, result_dir, test_saver, n_cores, num_test=False):
+    def test(self, testing_data_dir, result_dir, feat,  test_saver, n_cores, num_test=False):
         print('Start Testing')
         tmp_list = search_wav(testing_data_dir)
 
@@ -204,11 +210,27 @@ class REG:
                 Noisy_file = join(Noisy_write_dir, file_name)
                 Clean_file = join(Clean_write_dir, file_name)
 
-                X_in_seq = wav2spec(noisy_file, sr=16000,
-                                     forward_backward=True, SEQUENCE=False, norm=True, hop_length=hop_length)
+                if feat=='spec':
+                    X_in_seq = wav2spec(noisy_file, sr=16000,
+                                         forward_backward=False, SEQUENCE=False, norm=False, hop_length=hop_length)
+                elif feat=='mel':
+                    X_in_seq = wav2melspec(noisy_file, sr=16000,
+                                         forward_backward=False, SEQUENCE=False, norm=False, hop_length=hop_length)
+                elif feat=='mfcc':
+                    X_in_seq = wav2mfcc(noisy_file, sr=16000,
+                                         forward_backward=False, SEQUENCE=False, norm=False, hop_length=hop_length)
                 re_reg = sess.run([self.reg_layer],
                                   feed_dict={self.x_noisy: X_in_seq})[:][0]
-                spec2wav(noisy_file, 16000, REG_file,
-                         re_reg, hop_length=hop_length)
-                copy_file(noisy_file, Noisy_file)
-                copy_file(clean_file, Clean_file)
+                if feat=='spec':
+                    spec2wav(noisy_file, 16000, REG_file,
+                         re_reg, hop_length=hop_length);
+                if feat=='melspec':
+                    melspec2wav(noisy_file, 16000, REG_file,
+                         re_reg, hop_length=hop_length);
+                if feat=='spec':
+                    mfccupload(noisy_file, 16000, REG_file,
+                         re_reg, hop_length=hop_length);
+
+
+                copy_file(noisy_file, Noisy_file, hop_length)
+                copy_file(clean_file, Clean_file, hop_length)

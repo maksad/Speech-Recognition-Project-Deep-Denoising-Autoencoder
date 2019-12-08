@@ -45,7 +45,7 @@ best_training_data = [
 ]
 
 def main():
-    clean_dir = '../../data_fin_words/fin_words'
+    clean_dir = '../data_fin_words/fin_words'
     noise_dir = '../data/raw/noise' # use the normal noise
     noisy_dir =  '../fin_data/noisy'
     enhanced_dir =  '../fin_data/enhanced'
@@ -54,10 +54,10 @@ def main():
     TRAIN = True
     TEST = True
     ncores = 20
-    epochs = 50
+    epochs = 20
     batch_size = 32
     lr = 1e-3
-
+    feat = 'spec'; # spec/ mel/ mfcc
     train_task = 'same_noise'  # set task name for noting your dataset
 
     # ===========================================================
@@ -79,7 +79,7 @@ def main():
     sr_noise = 44100
     snr_list = ['20dB', '10dB', '0dB']
     data_num = None  # set data_num to make training data numbers for different snr
-    syn_train = Synth(clean_train_list, noise_train_list, sr_clean, sr_noise)
+    syn_train = Synth(clean_train_list, noise_train_list, feat, sr_clean, sr_noise)
     syn_train.gen_noisy(snr_list, train_noisy_dir,
                         data_num=data_num, ADD_CLEAN=True, cpu_cores=ncores)
     print('--- Synthesize Testing Noisy Data ---')
@@ -88,7 +88,7 @@ def main():
     sr_noise = 44100
     data_num = None # set data_num to make testing data numbers for different snr
     snr_list = ['15dB']
-    syn_test = Synth(clean_test_list, noise_test_list, sr_clean, sr_noise)
+    syn_test = Synth(clean_test_list, noise_test_list, feat,  sr_clean, sr_noise)
     syn_test.gen_noisy(snr_list, test_noisy_dir,
                         data_num=data_num, ADD_CLEAN=True, cpu_cores=ncores)
     # ===========================================================
@@ -96,14 +96,14 @@ def main():
     # ===========================================================
     print('--- Generate Training Matrix ---')
     train_task = 'same_noise'  # set task name for noting your dataset
-    training_files_dir = '../fin_data/training_files'
-    train_noisy_dir = join(noisy_dir, 'train')
-    DEL_TRAIN_WAV = True
-    gen_mat = GenMatrix(training_files_dir, train_task, train_noisy_dir)
+    training_files_dir = '../fin_data/training_files';
+    train_noisy_dir = join(noisy_dir, 'train');
+    DEL_TRAIN_WAV = True;
+    gen_mat = GenMatrix(training_files_dir, train_task, train_noisy_dir);
     split_num = 50  # number of spliting files
     iter_num = 2  # set iter number to use multi-processing, cpu_cores = split_num/iter_num
     input_sequence = False  # set input data is sequence or not
-    gen_mat.create_h5(split_num=split_num, iter_num=iter_num,
+    gen_mat.create_h5(split_num=split_num, iter_num=iter_num, feat=feat,
                       input_sequence=input_sequence,
                       DEL_TRAIN_WAV=DEL_TRAIN_WAV)
 
@@ -116,7 +116,7 @@ def main():
     split_num = 50
     training_files_dir = '../fin_data/training_files'
     model = REG(tb_dir, saver_dir, train_task, date, gpu_num='3', note=note)
-    model.build(init_learning_rate=1e-3, reuse=False)
+    model.build(init_learning_rate=1e-3, reuse=False, feat=feat)
 
     print('--- Train Model ---')
     model.train(training_files_dir, split_num, epochs, batch_size)
@@ -128,7 +128,7 @@ def main():
     cpu_cores = 30
     test_saver = '{}_{}/{}/best_saver_{}'.format(
         saver_dir, note, date, train_task)
-    model.test(testing_data_dir, result_dir,
+    model.test(testing_data_dir, result_dir, feat,
                test_saver, cpu_cores, num_test)
 
 
