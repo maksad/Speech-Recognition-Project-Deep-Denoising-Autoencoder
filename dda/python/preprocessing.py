@@ -26,7 +26,6 @@ class Synth:
         # data_num: randomly choose clean data number in clean dir.
         # Set sampling rate of clean and noise data.
 
-
         if not os.path.exists(noisy_dir):
             os.makedirs(noisy_dir)
 
@@ -71,16 +70,16 @@ class Synth:
 class GenMatrix:
     # This function generate noisy data to h5 file for training NN model.
 
-    def __init__(self, save_h5_dir, save_h5_name, noisy_dir):
+    def __init__(self, save_h5_dir, save_h5_name, noisy_dir, clean_dir):
         self.save_h5_dir = save_h5_dir
         self.save_h5_name = save_h5_name
         self.noisy_dir = noisy_dir
+        self.clean_dir = clean_dir
 
         if not os.path.exists(self.save_h5_dir):
             os.makedirs(self.save_h5_dir)
 
-    def create_h5(self, split_num, iter_num, feat, input_sequence, DEL_TRAIN_WAV):
-
+    def create_h5(self, split_num, iter_num, feat, input_sequence, DEL_TRAIN_WAV=False):
         cpu_cores = int(split_num / iter_num)
         tmp1 = []
         tmp2 = []
@@ -88,18 +87,16 @@ class GenMatrix:
         training_data_list = search_wav(self.noisy_dir)
         print('Total training files: ', len(training_data_list))
 
-
         for file in training_data_list:
             try:
-                snr, noise_name, clean_name1, clean_neme2 = file.split('/')[-1].split('_')
-                clean_file = join(self.noisy_dir, '_'.join(['0dB', 'n0', clean_name1, clean_neme2]))
+                noise_name, subdir_name, file_name = file.split('/')[-3:]
+                clean_file = join(self.clean_dir, '/'.join([subdir_name, file_name]))
                 noisy_file = file
             except:
-                snr, noise_name, clean_name = file.split('/')[-1].split('_')
-                clean_file = join(self.noisy_dir, '_'.join(['0dB', 'n0', clean_name]))
-                noisy_file = file
-
-
+                raise NotImplementedError('File name was not found')
+                # noise_name, clean_name = file.split('/')[-1].split('_')
+                # clean_file = join(self.noisy_dir, '_'.join(['0dB', 'n0', clean_name]))
+                # noisy_file = file
 
             tmp1.append(clean_file)
             tmp2.append(noisy_file)
@@ -112,14 +109,21 @@ class GenMatrix:
         start = 0
         end = cpu_cores
         for num in range(iter_num):
-            # print(start, end)
             pool = Pool(cpu_cores)
-            func = partial(_create_split_h5, clean_split_list, noisy_split_list, feat,
-                           self.save_h5_dir, self.save_h5_name, input_sequence)
+            func = partial(
+                _create_split_h5,
+                clean_split_list,
+                noisy_split_list,
+                feat,
+                self.save_h5_dir,
+                self.save_h5_name,
+                input_sequence
+            )
             pool.map(func, range(start, end))
             pool.close()
             pool.join()
             start = end
             end += cpu_cores
+
         if DEL_TRAIN_WAV:
             shutil.rmtree(self.noisy_dir)
