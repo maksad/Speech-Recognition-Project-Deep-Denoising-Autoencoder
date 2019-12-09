@@ -1,2 +1,7 @@
 *pycache*
 data_fin_words
+dda/fin_data/*
+dda/all_fin_data/*
+TIMIT/TEST/DR*
+TIMIT/TRAIN/DR*
+TIMIT/TRAIN/phonemes*
