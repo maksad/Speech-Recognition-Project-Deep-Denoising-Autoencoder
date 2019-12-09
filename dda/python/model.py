@@ -8,7 +8,17 @@ import os
 from os.path import join
 from tqdm import tqdm
 tqdm.monitor_interval = 0
-from utils import np_REG_batch, search_wav, wav2spec, wav2melspec, wav2mfcc, melspec2wav, spec2wav, mfccupload, copy_file
+from utils import (
+    np_REG_batch,
+    search_wav,
+    wav2spec,
+    wav2melspec,
+    wav2mfcc,
+    melspec2wav,
+    spec2wav,
+    mfccupload,
+    copy_file
+)
 #tf.disable_v2_behavior()
 
 class REG:
