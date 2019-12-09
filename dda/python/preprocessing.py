@@ -61,8 +61,7 @@ class Synth:
             ## This function will set 'n0' as clean data
             num_list = range(len(clean_data_list))
             pool = Pool(cpu_cores)
-            func = partial(_gen_clean, clean_data_list,
-                           noisy_dir, '0dB')
+            func = partial(_gen_clean, clean_data_list, noisy_dir, '0dB')
             pool.map(func, num_list)
             pool.close()
             pool.join()
