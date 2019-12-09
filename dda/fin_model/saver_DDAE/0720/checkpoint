@@ -1,2 +1,0 @@
-model_checkpoint_path: "best_saver_same_noise"
-all_model_checkpoint_paths: "best_saver_same_noise"
