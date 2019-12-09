@@ -15,7 +15,7 @@ np.random.seed(1)
 
 class Synth:
 
-    def __init__(self, clean_list, noise_list, sr_clean, sr_noise):
+    def __init__(self, clean_list, noise_list, feat,  sr_clean, sr_noise):
         self.clean_list = clean_list
         self.noise_list = noise_list
         self.sr_clean = sr_clean
@@ -80,7 +80,7 @@ class GenMatrix:
         if not os.path.exists(self.save_h5_dir):
             os.makedirs(self.save_h5_dir)
 
-    def create_h5(self, split_num, iter_num, input_sequence, DEL_TRAIN_WAV):
+    def create_h5(self, split_num, iter_num, feat, input_sequence, DEL_TRAIN_WAV):
 
         cpu_cores = int(split_num / iter_num)
         tmp1 = []
@@ -115,7 +115,7 @@ class GenMatrix:
         for num in range(iter_num):
             # print(start, end)
             pool = Pool(cpu_cores)
-            func = partial(_create_split_h5, clean_split_list, noisy_split_list,
+            func = partial(_create_split_h5, clean_split_list, noisy_split_list, feat,
                            self.save_h5_dir, self.save_h5_name, input_sequence)
             pool.map(func, range(start, end))
             pool.close()
