@@ -1,4 +1,6 @@
+import os
 from os.path import join
+import shutil
 from sklearn.model_selection import train_test_split
 
 import tensorflow as tf
@@ -26,6 +28,7 @@ parser.add_argument('--split_number',      type=int,      default=100)
 parser.add_argument('--lr',                type=float,    default=1e-3)
 parser.add_argument('--train',             type=str2bool, default=True)
 parser.add_argument('--test',              type=str2bool, default=True)
+parser.add_argument('--keep_training_matrix',type=str2bool, default=False)
 
 args = parser.parse_args()
 
@@ -51,7 +54,10 @@ def create_training_matrix():
 
 def main():
     if args.train:
-        create_training_matrix()
+        if os.path.exists(args.h5_dir_name) and not args.keep_training_matrix:
+            shutil.rmtree(args.h5_dir_name)
+        if not args.keep_training_matrix:
+            create_training_matrix()
 
     print('--- Build Model ---')
     model = REG(args.model_dir, gpu_num='3', h5_file_name=args.h5_file_name)
