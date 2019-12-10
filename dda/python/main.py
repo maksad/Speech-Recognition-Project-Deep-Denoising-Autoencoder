@@ -13,7 +13,7 @@ from utils import search_wav, str2bool
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--training_data_dir', type=str,      default='./data/train_data')
-parser.add_argument('--testing_data_dir',  type=str,      default='./data/test_data')
+parser.add_argument('--testing_data_dir',  type=str,      default='./data/test_data/noisy')
 parser.add_argument('--enhanced_dir',      type=str,      default= './data/enhanced')
 parser.add_argument('--h5_dir_name',       type=str,      default='./data/train_data/training_files_h5')
 parser.add_argument('--h5_file_name',      type=str,      default='file', help='set task name for noting your dataset')
