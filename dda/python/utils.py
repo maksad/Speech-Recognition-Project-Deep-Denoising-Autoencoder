@@ -286,7 +286,12 @@ def _create_split_h5(clean_split_list,
     del y_clean_data
 
 
-def get_best_data(file_list, list_best_data):
-    return  [
-        s for s in file_list if any(xs in s for xs in list_best_data)
-    ]
+def str2bool(v):
+    if isinstance(v, bool):
+       return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
