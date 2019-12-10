@@ -155,7 +155,12 @@ class REG:
 
     def train(self, h5_dir_name, split_num, epochs, batch_size, base_model_dir=None):
         if (
-            os.path.normpath(self.model_dir) != os.path.normpath(base_model_dir)
+            not (
+                base_model_dir and
+                os.path.normpath(self.model_dir) == os.path.normpath(
+                    '/'.join(base_model_dir.split('/')[:-1])
+                )
+            )
             and tf.gfile.Exists(self.model_dir)
         ):
             tf.gfile.DeleteRecursively(self.model_dir)
@@ -180,6 +185,7 @@ class REG:
             step = 0
             epochs = range(epochs)
             loss_list = []
+            best_loss_list = []
 
             for epoch in tqdm(epochs):
                 shuffle_list = np.arange(split_num)
@@ -218,11 +224,12 @@ class REG:
                     print('[epoch {}] Loss Reg:{}'.format(
                         int(epoch), loss_reg_tmp))
 
+                    loss_list.append(loss_var)
                     if loss_var <= (best_reg_loss - min_delta):
                         best_reg_loss = loss_var
                         self.saver.save(sess=sess, save_path=join(self.model_dir, 'trained_model'))
                         patience = 10
-                        loss_list.append(best_reg_loss)
+                        best_loss_list.append(best_reg_loss)
                         print('Best Reg Loss: ', best_reg_loss)
                     else:
                         print('Not improve Loss:', best_reg_loss)
@@ -235,10 +242,12 @@ class REG:
                     break
 
             plt.figure()
-            plt.plot(loss_list)
+            plt.plot(loss_list, label='loss')
+            plt.plot(best_loss_list, label='best loss')
             plt.xlabel('Epochs')
             plt.ylabel('MSE loss')
             plot_name = join(self.model_dir, 'loss_history.png')
+            plt.legend()
             plt.savefig(plot_name)
 
     def test(self, testing_data_dir, enhanced_dir, feat, model_dir, num_test=False):
