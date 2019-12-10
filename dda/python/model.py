@@ -254,8 +254,6 @@ class REG:
                 enhanced_file_dir = join(enhanced_dir, new_file_dir)
                 if not os.path.exists(enhanced_file_dir):
                     os.makedirs(enhanced_file_dir)
-                else:
-                    os.rmdir(enhanced_file_dir)
 
                 REG_file = join(enhanced_file_dir, file_name)
 
@@ -274,7 +272,7 @@ class REG:
                 re_reg = sess.run([self.reg_layer], feed_dict={self.x_noisy: X_in_seq})[:][0]
                 if feat=='spec':
                     spec2wav(noisy_file, 16000, REG_file, re_reg, hop_length=hop_length);
-                if feat=='melspec':
+                if feat=='mel':
                     melspec2wav(noisy_file, 16000, REG_file, re_reg, hop_length=hop_length);
-                if feat=='spec':
+                if feat=='mfcc':
                     mfccupload(noisy_file, 16000, REG_file, re_reg, hop_length=hop_length);
