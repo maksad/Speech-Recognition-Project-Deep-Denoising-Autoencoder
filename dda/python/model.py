@@ -7,6 +7,7 @@ import scipy
 import os
 from os.path import join
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 tqdm.monitor_interval = 0
 from utils import (
     np_REG_batch,
@@ -152,13 +153,25 @@ class REG:
             self.saver = tf.train.Saver()
 
 
-    def train(self, h5_dir_name, split_num, epochs, batch_size):
-        if tf.gfile.Exists(self.model_dir):
+    def train(self, h5_dir_name, split_num, epochs, batch_size, base_model_dir=None):
+        if (
+            os.path.normpath(self.model_dir) != os.path.normpath(base_model_dir)
+            and tf.gfile.Exists(self.model_dir)
+        ):
             tf.gfile.DeleteRecursively(self.model_dir)
             tf.gfile.MkDir(self.model_dir)
         best_reg_loss = 10.
 
         with tf.Session(config=self.config) as sess:
+            tf.global_variables_initializer().run()
+            writer = tf.summary.FileWriter(self.model_dir, sess.graph,  max_queue=10)
+            merge_op = tf.summary.merge_all()
+
+            if base_model_dir:
+                print('Loading base model: {}'.format(base_model_dir))
+                self.saver.restore(sess=sess, save_path=base_model_dir)
+                sess.run(tf.local_variables_initializer())
+
             print('Start Training')
             # set early stopping
             patience = 10
@@ -166,10 +179,7 @@ class REG:
             min_delta = 0.01
             step = 0
             epochs = range(epochs)
-
-            tf.global_variables_initializer().run()
-            writer = tf.summary.FileWriter(self.model_dir, sess.graph,  max_queue=10)
-            merge_op = tf.summary.merge_all()
+            loss_list = []
 
             for epoch in tqdm(epochs):
                 shuffle_list = np.arange(split_num)
@@ -212,15 +222,24 @@ class REG:
                         best_reg_loss = loss_var
                         self.saver.save(sess=sess, save_path=join(self.model_dir, 'trained_model'))
                         patience = 10
+                        loss_list.append(best_reg_loss)
                         print('Best Reg Loss: ', best_reg_loss)
                     else:
                         print('Not improve Loss:', best_reg_loss)
                         if FLAG == True:
                             patience -= 1
 
+
                 if patience == 0 and FLAG == True:
                     print('Early Stopping ! ! !')
                     break
+
+            plt.figure()
+            plt.plot(loss_list)
+            plt.xlabel('Epochs')
+            plt.ylabel('MSE loss')
+            plot_name = join(self.model_dir, 'loss_history.png')
+            plt.savefig(plot_name)
 
     def test(self, testing_data_dir, enhanced_dir, feat, model_dir, num_test=False):
         print('Start Testing')

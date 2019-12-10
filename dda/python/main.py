@@ -20,6 +20,7 @@ parser.add_argument('--enhanced_dir',      type=str,      default= './data/enhan
 parser.add_argument('--h5_dir_name',       type=str,      default='./data/train_data/training_files_h5')
 parser.add_argument('--h5_file_name',      type=str,      default='file', help='set task name for noting your dataset')
 parser.add_argument('--model_dir',         type=str,      default='./trained_model')
+parser.add_argument('--base_model_dir',    type=str,      default=None)
 parser.add_argument('--feat',              type=str,      default='spec', help='spec, mel, mfcc')
 parser.add_argument('--num_cpu',           type=int,      default=5)
 parser.add_argument('--epochs',            type=int,      default=50)
@@ -58,6 +59,8 @@ def main():
             shutil.rmtree(args.h5_dir_name)
         if not args.keep_training_matrix:
             create_training_matrix()
+        if not os.path.exists(args.model_dir):
+            os.makedirs(args.model_dir)
 
     print('--- Build Model ---')
     model = REG(args.model_dir, gpu_num='3', h5_file_name=args.h5_file_name)
@@ -65,7 +68,15 @@ def main():
 
     if args.train:
         print('--- Train Model ---')
-        model.train(args.h5_dir_name, args.split_number, args.epochs, args.batch_size)
+        base_model_dir = join(args.base_model_dir, 'trained_model') if args.base_model_dir else None
+
+        model.train(
+            args.h5_dir_name,
+            args.split_number,
+            args.epochs,
+            args.batch_size,
+            base_model_dir=base_model_dir,
+        )
 
     if args.test:
         print('--- Test Model ---')

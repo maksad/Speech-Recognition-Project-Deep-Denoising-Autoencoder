@@ -1,2 +1,2 @@
-model_checkpoint_path: "trained_model"
-all_model_checkpoint_paths: "trained_model"
+model_checkpoint_path: "trained_model_100k_without_clean"
+all_model_checkpoint_paths: "trained_model_100k_without_clean"
