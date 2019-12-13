@@ -47,7 +47,7 @@ class REG:
         elif feat=='mel':
             input_no=128;
         elif feat=='mfcc':
-            input_no=13
+            input_no=26
 
         with tf.variable_scope(self.name) as vs:
             if reuse:

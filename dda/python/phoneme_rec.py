@@ -29,7 +29,7 @@ phonemes = training_data['phonemes'];
 train_data = train_data.T; test_data = test_data.T; 
 
 dim=26; 
-epochs=50
+epochs=100
 network = Sequential()
 output_layers=len(phonemes);
 #do_value=0.2; 
