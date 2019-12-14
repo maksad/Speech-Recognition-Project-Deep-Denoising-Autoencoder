@@ -165,7 +165,7 @@ class REG:
         ):
             tf.gfile.DeleteRecursively(self.model_dir)
             tf.gfile.MkDir(self.model_dir)
-        best_reg_loss = 10.
+        best_reg_loss = 700.
 
         with tf.Session(config=self.config) as sess:
             tf.global_variables_initializer().run()
