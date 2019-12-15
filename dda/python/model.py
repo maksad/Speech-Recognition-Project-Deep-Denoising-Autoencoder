@@ -185,7 +185,6 @@ class REG:
             step = 0
             epochs = range(epochs)
             loss_list = []
-            best_loss_list = []
 
             for epoch in tqdm(epochs):
                 shuffle_list = np.arange(split_num)
@@ -229,7 +228,6 @@ class REG:
                         best_reg_loss = loss_var
                         self.saver.save(sess=sess, save_path=join(self.model_dir, 'trained_model'))
                         patience = 10
-                        best_loss_list.append(best_reg_loss)
                         print('Best Reg Loss: ', best_reg_loss)
                     else:
                         print('Not improve Loss:', best_reg_loss)
@@ -243,7 +241,6 @@ class REG:
 
             plt.figure()
             plt.plot(loss_list, label='loss')
-            plt.plot(best_loss_list, label='best loss')
             plt.xlabel('Epochs')
             plt.ylabel('MSE loss')
             plot_name = join(self.model_dir, 'loss_history.png')
