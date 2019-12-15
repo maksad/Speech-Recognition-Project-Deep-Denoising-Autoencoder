@@ -84,12 +84,15 @@ def wav2mfcc(wavfile, sr, forward_backward=False, SEQUENCE=None, norm=False, hop
     # Note:This function return three different kind of spec for training and
     # testing
     y, sr = librosa.load(wavfile, sr, mono=True)
-    mfcc = librosa.feature.mfcc(y,
-                 hop_length=hop_length,
-                 sr = sr, n_mels = 13, dct_type=3)
-    return mfcc.T
+    mfcc = librosa.feature.mfcc(y, win_length=512, n_fft=512,
+         hop_length=256,
+         sr = sr, n_mfcc = 13)
+    delta = librosa.feature.delta(mfcc);
+    mfcc_new = np.concatenate([mfcc, delta]);
+    return mfcc_new.T
 
-def spec2wav(wavfile, sr, output_filename, spec_test, hop_length=None):
+
+def spec2wav(wavfile, sr, output_filename, spec_test, hop_length=256):
 
     y, sr = librosa.load(wavfile, sr, mono=True)
     D = librosa.stft(y,
@@ -108,9 +111,8 @@ def spec2wav(wavfile, sr, output_filename, spec_test, hop_length=None):
                            hop_length=hop_length,
                            win_length=512,
                            window=scipy.signal.hann)
-
     melspec = librosa.feature.melspectrogram(S =  Sxx_r, n_fft=512, sr=sr);
-    mfcc = librosa.feature.mfcc(S=melspec, sr=sr, n_mfcc=13, n_fft=512, win_length=512);
+    mfcc = librosa.feature.mfcc(S=librosa.power_to_db(melspec), sr=sr, n_mfcc=13, n_fft=512, win_length=512);
     delta = librosa.feature.delta(mfcc);
     mfcc_new = np.concatenate([mfcc, delta]);
     if(os.path.exists(output_filename[0:-4] +'.mfc')):
@@ -126,48 +128,40 @@ def spec2wav(wavfile, sr, output_filename, spec_test, hop_length=None):
     librosa.output.write_wav(
         output_filename, y_out, sr)
 
-def melspec2wav(wavfile, sr, output_filename, spec_test, hop_length=None):
+def melspec2wav(wavfile, sr, output_filename, spec_test, hop_length=256):
 
     y, sr = librosa.load(wavfile, sr, mono=True)
-    D = librosa.feature.melspectrogram(y,
-                     n_fft=512,
-                     hop_length=hop_length,
-                     win_length=512,
-                     window=scipy.signal.hann)
-    D = D + epsilon
-    phase = np.exp(1j * np.angle(D))
+#    D = librosa.feature.melspectrogram(y,
+#                     n_fft=512,
+#                     hop_length=hop_length,
+#                     win_length=512,
+#                     window=scipy.signal.hann)
+  #  D = D.T + epsilon
+  #  phase = np.exp(1j * np.angle(D))
     Sxx_r_tmp = np.array(spec_test)
-    Sxx_r_tmp = np.sqrt(10**Sxx_r_tmp)
-    #Sxx_r = Sxx_r_tmp.T
-    reverse = np.multiply(Sxx_r_tmp, phase)
+    reverse = np.sqrt(10**Sxx_r_tmp)
+    Sxx_r = reverse.T
+   # reverse = np.multiply(Sxx_r_tmp, phase)
 
-    result = librosa.feature.inverse.mel_to_audio(reverse,
-                           hop_length=hop_length,
-                           win_length=512,
-                           window=scipy.signal.hann)
-    mfcc = librosa.feature.mfcc(S=Sxx_r_tmp, sr=sr, n_mfcc=13, n_fft=512, win_length = 512);
+#    result = librosa.feature.inverse.mel_to_audio(reverse,
+#                           hop_length=hop_length,
+#                           win_length=512,
+#                           window=scipy.signal.hann)
+    mfcc = librosa.feature.mfcc(S=librosa.power_to_db(Sxx_r), sr=sr, n_mfcc=13, n_fft=512, win_length = 512);
     delta = librosa.feature.delta(mfcc);
     mfcc_new = np.concatenate([mfcc, delta]);
     if(os.path.exists(output_filename[0:-4] +'.mfc')):
         os.remove(output_filename[0:-4] +'.mfc')
     np.savetxt(output_filename[0:-4] +'.mfc', mfcc_new);
-    y_out = librosa.util.fix_length(result, len(y), mode='edge')
-    y_out = y_out/np.max(np.abs(y_out))
-    if(np.max(abs(y_out)>1)):
-        y_out = y_out/max(abs(y_out));
-#    librosa.output.write_wav(
-#        output_filename, (y_out * maxv).astype(np.int16), sr)
-    librosa.output.write_wav(
-        output_filename, y_out, sr)
 
-def mfccupload(wavfile, sr, output_filename, mfcc, hop_length=None): #not doing the actual converting; just uploading
+    librosa.output.write_wav( output_filename, y, sr) #uploads noisy file
+
+def mfccupload(wavfile, sr, output_filename, mfcc, hop_length=256): #not doing the actual converting; just uploading
 
     y, sr = librosa.load(wavfile, sr, mono=True)
-#    delta = librosa.feature.delta(mfcc);
-#    mfcc_new = np.concatenate([mfcc, delta]);
     if(os.path.exists(output_filename[0:-4] +'.mfc')):
         os.remove(output_filename[0:-4] +'.mfc')
-    np.savetxt(output_filename[0:-4] +'.mfc', mfcc);
+    np.savetxt(output_filename[0:-4] +'.mfc', mfcc.T);
     librosa.output.write_wav(
         output_filename, y, sr)
 

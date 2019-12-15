@@ -47,7 +47,7 @@ class REG:
         elif feat=='mel':
             input_no=128;
         elif feat=='mfcc':
-            input_no=13
+            input_no=26
 
         with tf.variable_scope(self.name) as vs:
             if reuse:
@@ -165,7 +165,7 @@ class REG:
         ):
             tf.gfile.DeleteRecursively(self.model_dir)
             tf.gfile.MkDir(self.model_dir)
-        best_reg_loss = 10.
+        best_reg_loss = 700.
 
         with tf.Session(config=self.config) as sess:
             tf.global_variables_initializer().run()

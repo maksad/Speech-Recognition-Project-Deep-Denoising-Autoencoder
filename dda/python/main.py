@@ -21,7 +21,7 @@ parser.add_argument('--h5_dir_name',       type=str,      default='./data/train_
 parser.add_argument('--h5_file_name',      type=str,      default='file', help='set task name for noting your dataset')
 parser.add_argument('--model_dir',         type=str,      default='./trained_model')
 parser.add_argument('--base_model_dir',    type=str,      default=None)
-parser.add_argument('--feat',              type=str,      default='spec', help='spec, mel, mfcc')
+parser.add_argument('--feat',              type=str,      default='spex', help='spec, mel, mfcc')
 parser.add_argument('--num_cpu',           type=int,      default=5)
 parser.add_argument('--epochs',            type=int,      default=50)
 parser.add_argument('--batch_size',        type=int,      default=32)
