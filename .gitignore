@@ -2,8 +2,8 @@
 data_fin_words
 dda/fin_data/*
 dda/all_fin_data/*
-dda/python/data/train_data/training_files_h5/*
-dda/python/data/clean_data_as_training/*
+dda/python/**/training_files_h5/*
+dda/python/**/clean_data_as_training/*
 TIMIT/TEST/DR*
 TIMIT/TRAIN/DR*
 TIMIT/TRAIN/phonemes*
