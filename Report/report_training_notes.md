@@ -33,3 +33,6 @@
 
     test base model:
         python main.py --train false --testing_data_dir ./data/test_data/clean --enhanced_dir ./data/enanced_data_final/mfcc_base_model --model_dir ./final_trained_models/mfcc_base_model --feat mfcc
+
+    test denoising model:
+        python main.py --train false --testing_data_dir ./data/test_data/noisy --enhanced_dir ./data/enanced_data_final/spec_denoising_model --model_dir ./final_trained_models/spec_denoising_model --feat spec
