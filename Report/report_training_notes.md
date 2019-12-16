@@ -1,8 +1,8 @@
 # Models
     Base models:
-        spec_base_model
-        mel_base_model
-        mfcc_base_model
+        spec_base_model:                    Loss Reg: 0.0186
+        mel_base_model:                     Loss Reg: 0.0292
+        mfcc_base_model:                    Loss Reg: 0.3222
 
         params:
             Total training files:  12548
