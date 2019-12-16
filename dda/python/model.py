@@ -235,17 +235,17 @@ class REG:
                             patience -= 1
 
 
+                    plt.figure()
+                    plt.plot(loss_list, label='loss')
+                    plt.xlabel('Epochs')
+                    plt.ylabel('MSE loss')
+                    plot_name = join(self.model_dir, 'loss_history.png')
+                    plt.legend()
+                    plt.savefig(plot_name)
+
                 if patience == 0 and FLAG == True:
                     print('Early Stopping ! ! !')
                     break
-
-            plt.figure()
-            plt.plot(loss_list, label='loss')
-            plt.xlabel('Epochs')
-            plt.ylabel('MSE loss')
-            plot_name = join(self.model_dir, 'loss_history.png')
-            plt.legend()
-            plt.savefig(plot_name)
 
     def test(self, testing_data_dir, enhanced_dir, feat, model_dir, num_test=False):
         print('Start Testing')
