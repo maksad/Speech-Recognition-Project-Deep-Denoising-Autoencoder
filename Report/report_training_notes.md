@@ -8,9 +8,13 @@
             Total training files:  12548
 
     Denoising model
-        spec_base_model
-            without base model:        Loss Reg:1.8046
-            with base model:           Loss Reg:1.5358
+        spec_denoise_model
+            without base model:        Loss Reg: 1.8046
+            with base model:           Loss Reg: 1.5358
+            final loss with base:      1.02230
+        mel_denoise_model
+            without base model:        Loss Reg: 6.3143
+            with base model:           Loss Reg: 4.7896
 
         params:
             Total training files:  2977
