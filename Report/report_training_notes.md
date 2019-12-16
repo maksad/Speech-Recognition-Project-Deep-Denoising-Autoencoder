@@ -15,6 +15,10 @@
         mel_denoise_model
             without base model:        Loss Reg: 6.3143
             with base model:           Loss Reg: 4.7896
+            final loss with base       2.3266
+        mfcc_denoise_model
+            without base model:        Loss Reg: 505.2360
+            with base model:           Loss Reg: 394.2066
 
         params:
             Total training files:  2977
