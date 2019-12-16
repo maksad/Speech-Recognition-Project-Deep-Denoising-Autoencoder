@@ -154,7 +154,7 @@ def melspec2wav(wavfile, sr, output_filename, spec_test, hop_length=256):
         os.remove(output_filename[0:-4] +'.mfc')
     np.savetxt(output_filename[0:-4] +'.mfc', mfcc_new);
 
-    librosa.output.write_wav( output_filename, y, sr) #uploads noisy file
+    # librosa.output.write_wav( output_filename, y, sr) #uploads noisy file
 
 def mfccupload(wavfile, sr, output_filename, mfcc, hop_length=256): #not doing the actual converting; just uploading
 
@@ -162,8 +162,8 @@ def mfccupload(wavfile, sr, output_filename, mfcc, hop_length=256): #not doing t
     if(os.path.exists(output_filename[0:-4] +'.mfc')):
         os.remove(output_filename[0:-4] +'.mfc')
     np.savetxt(output_filename[0:-4] +'.mfc', mfcc.T);
-    librosa.output.write_wav(
-        output_filename, y, sr)
+    # librosa.output.write_wav(
+    #     output_filename, y, sr)
 
 
 def copy_file(input_file, output_file, hop_length):
