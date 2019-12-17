@@ -33,4 +33,7 @@
         python ./main.py --epochs 300 --feat spec --num_cpu 10 --model_dir ./final_trained_models/spec_denoising_model --enhanced_dir ./data/enanced_data_final/spec_denoising_model --base_model_dir ./final_trained_models/spec_base_model/
 
     test base model:
-        python main.py --train false --testing_data_dir ./data/test_data/clean --enhanced_dir ./data/enanced_data_final/mel_base_model --model_dir ./final_trained_models/mel_base_model
+        python main.py --train false --testing_data_dir ./data/test_data/clean --enhanced_dir ./data/enanced_data_final/mfcc_base_model --model_dir ./final_trained_models/mfcc_base_model --feat mfcc
+
+    test denoising model:
+        python main.py --train false --testing_data_dir ./data/test_data/noisy --enhanced_dir ./data/enanced_data_final/spec_denoising_model --model_dir ./final_trained_models/spec_denoising_model --feat spec
