@@ -19,6 +19,7 @@
         mfcc_denoise_model
             start without base model:        Loss Reg: 505.2360
             start with base model:           Loss Reg: 394.2066
+            final loss with base:            179.37457
 
         params:
             Total training files:  2977

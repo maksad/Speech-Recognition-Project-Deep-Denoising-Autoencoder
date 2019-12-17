@@ -235,13 +235,14 @@ class REG:
                             patience -= 1
 
 
-                    plt.figure()
+                    fig = plt.figure()
                     plt.plot(loss_list, label='loss')
                     plt.xlabel('Epochs')
                     plt.ylabel('MSE loss')
                     plot_name = join(self.model_dir, 'loss_history.png')
                     plt.legend()
                     plt.savefig(plot_name)
+                    plt.close(fig)
 
                 if patience == 0 and FLAG == True:
                     print('Early Stopping ! ! !')
